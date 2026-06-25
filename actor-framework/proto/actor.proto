@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package actor;
+
+option go_package = "actor-framework/remote";
+
+service ActorService {
+  rpc SendMessage(Envelope) returns (Ack);
+}
+
+message Envelope {
+  string sender_id = 1;
+  string receiver_id = 2;
+  string type = 3;
+  bytes payload = 4;
+}
+
+message Ack {
+  bool success = 1;
+  string error = 2;
+}
