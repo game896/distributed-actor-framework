@@ -145,7 +145,7 @@ func runWorker(addr string, masterAddr string, numWorkers int) {
 
 	masterPID := actor.NewRemotePID("master", masterAddr)
 	for i := 0; i < numWorkers; i++ {
-		id := fmt.Sprintf("worker-%d", i+1)
+		id := fmt.Sprintf("worker-%d@%s", i+1, addr)
 		w := actors.NewWorkerActor(id, masterPID)
 		_, err := sys.Spawn(actor.NewProps(w, nil), id)
 		if err != nil {

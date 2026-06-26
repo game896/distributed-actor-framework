@@ -29,15 +29,28 @@ func NewWorkerActor(id string, masterPID actor.PID) *WorkerActor {
 
 func (w *WorkerActor) OnStart(ctx *actor.ActorContext) {
 	w.stopCh = make(chan struct{})
-
-	payload := &taskpb.RegisterPayload{
-		WorkerId: w.workerID,
-		Address:  ctx.Self().Address,
-	}
-	ctx.Send(w.masterPID, actor.NewMessage(ctx.Self(), w.masterPID, MsgTypeRegister, payload))
 	ctx.Become(w.idleBehavior)
 
 	go func() {
+		for {
+			if w.pingMaster() {
+				break
+			}
+			fmt.Printf("[Worker %s] master not ready, retrying in 2s...\n", w.workerID)
+			select {
+			case <-w.stopCh:
+				return
+			case <-time.After(2 * time.Second):
+			}
+		}
+
+		payload := &taskpb.RegisterPayload{
+			WorkerId: w.workerID,
+			Address:  ctx.Self().Address,
+		}
+		ctx.Send(w.masterPID, actor.NewMessage(ctx.Self(), w.masterPID, MsgTypeRegister, payload))
+		fmt.Printf("[Worker %s] registered with master\n", w.workerID)
+
 		ticker := time.NewTicker(2 * time.Second)
 		defer ticker.Stop()
 		fails := 0
@@ -64,7 +77,7 @@ func (w *WorkerActor) OnStart(ctx *actor.ActorContext) {
 		}
 	}()
 
-	fmt.Printf("[Worker %s] started, registering with master\n", w.workerID)
+	fmt.Printf("[Worker %s] started, waiting for master...\n", w.workerID)
 }
 
 func (w *WorkerActor) OnStop(ctx *actor.ActorContext) {

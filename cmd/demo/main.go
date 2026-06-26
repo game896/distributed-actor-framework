@@ -66,7 +66,7 @@ func main() {
 
 	numWorkers := 3
 	for i := 0; i < numWorkers; i++ {
-		id := fmt.Sprintf("worker-%d", i+1)
+		id := fmt.Sprintf("worker-%d@%s", i+1, workerMod.Address())
 		w := actors.NewWorkerActor(id, workerMasterPID)
 		_, err := sysWorker.Spawn(actor.NewProps(w, nil), id)
 		if err != nil {
