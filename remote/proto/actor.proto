@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package actor;
+option go_package = "github.com/anomalyco/distributed-actor-framework/remote/proto/generated";
+
+message PID {
+  string id = 1;
+  string address = 2;
+}
+
+message MessageEnvelope {
+  PID sender = 1;
+  PID receiver = 2;
+  string message_type = 3;
+  string payload_type = 4;
+  bytes payload_bytes = 5;
+}
+
+message Empty {}
+
+service ActorService {
+  rpc SendMessage(MessageEnvelope) returns (Empty);
+  rpc Ping(Empty) returns (Empty);
+}
